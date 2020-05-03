@@ -91,3 +91,60 @@ END:VEVENT`
 		t.Error("Expected calendar event serialization to be:\n", expected, "\n\nbut got:\n", output)
 	}
 }
+
+func TestCalendarEventParse(t *testing.T) {
+	vevent := `
+BEGIN:VEVENT
+UID:123
+CREATED:20100101T120001Z
+LAST-MODIFIED:20100101T120002Z
+DTSTART:20100101T120003Z
+DTEND:20100101T120004Z
+SUMMARY:Foo Bar
+DESCRIPTION:Lorem\nIpsum
+LOCATION:Berlin\nGermany
+URL:https://www.example.com
+END:VEVENT`
+
+	output, err := ParseCalendar(vevent)
+	if err != nil {
+		panic(err)
+	}
+
+	node := output.ChildByName("SUMMARY")
+	if node == nil {
+		t.Error("Expected SUMMARY to be not nil")
+	}
+	if node.Value != "Foo Bar" {
+		t.Error("Expected SUMMARY to be: ", "Foo Bar", "Got: ", node.Value)
+	}
+}
+
+func TestCalendarEventParseMultiline(t *testing.T) {
+	vevent := `
+BEGIN:VEVENT
+UID:123
+CREATED:20100101T120001Z
+LAST-MODIFIED:20100101T120002Z
+DTSTART:20100101T120003Z
+DTEND:20100101T120004Z
+SUMMARY:Foo Bar
+DESCRIPTION:Lorem Ipsum
+ Loquitur
+LOCATION:Berlin\nGermany
+URL:https://www.example.com
+END:VEVENT`
+
+	output, err := ParseCalendar(vevent)
+	if err != nil {
+		panic(err)
+	}
+
+	node := output.ChildByName("DESCRIPTION")
+	if node == nil {
+		t.Error("Expected DESCRIPTION to be not nil")
+	}
+	if node.Value != "Lorem Ipsum Loquitur" {
+		t.Error("Expected DESCRIPTION to be: ", "Lorem Ipsum Loquitur", "Got: ", node.Value)
+	}
+}
