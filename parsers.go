@@ -8,7 +8,7 @@ import (
 )
 
 func ParseCalendar(data string) (*Node, error) {
-	multi := regexp.MustCompile("\n[\r]?[\t ]+")
+	multi := regexp.MustCompile("\r?\n[\t ]+")
 	d := multi.ReplaceAll([]byte(data), []byte(""))
 	r := regexp.MustCompile("([\r|\t| ]*\n[\r|\t| ]*)+")
 	lines := r.Split(strings.TrimSpace(string(d)), -1)
