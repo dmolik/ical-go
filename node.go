@@ -178,10 +178,10 @@ func (this *Node) dig(valueType string, valuePath ...string) (string, bool) {
 func (this *Node) digs(valueType string, valuePath ...string) ([]string, bool) {
 	current := this
 	lastIndex := len(valuePath) - 1
-	nodes := current.ChildrenByName(valuePath[0])
-	for _, v := range valuePath[:lastIndex] {
-		current = current.ChildByName(v)
+	nodes := current.ChildrenByName(valuePath[lastIndex])
+	for _, v := range valuePath {
 		nodes   = current.ChildrenByName(v)
+		current = current.ChildByName(v)
 
 		if current == nil {
 			return []string{""}, false
@@ -189,6 +189,7 @@ func (this *Node) digs(valueType string, valuePath ...string) ([]string, bool) {
 	}
 
 	target := valuePath[lastIndex]
+
 	var values []string
 	if valueType == "param" {
 		for _, n := range nodes {

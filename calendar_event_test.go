@@ -193,8 +193,60 @@ END:VEVENT`
 	}
 }
 
+func TestCalendarParseMultiDig(t *testing.T) {
+	vcal := `
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:123
+CREATED:20100101T120001Z
+LAST-MODIFIED:20100101T120002Z
+DTSTART:20100101T120003Z
+DTEND:20100101T120004Z
+SUMMARY:Foo Bar
+DESCRIPTION:Lorem Ipsum 
+ Loquitur
+ATTENDEE;RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:danmo
+ lik@gmail.com
+ATTENDEE;RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:dan@d
+ 3fy.net
+LOCATION:Berlin\nGermany
+URL:https://www.example.com
+END:VEVENT
+END:VCALENDAR`
+
+	output, err := ParseCalendar(vcal)
+	if err != nil {
+		panic(err)
+	}
+	dig, b := output.DigProperty("VEVENT", "ATTENDEE")
+	if  dig == "" || ! b {
+		t.Error("Expected dig ATTENDEE to be not empty")
+	}
+	if dig != "mailto:danmolik@gmail.com" {
+		t.Error("Expected ATTENDEE to be: ", "mailto:danmolik@gmail.com", "Got: ", dig)
+	}
+
+	digs, b := output.DigProperties("VEVENT", "ATTENDEE")
+	if len(digs) == 0 || ! b {
+		t.Error("Expected digs len:", len(digs), "ATTENDEE to be not empty")
+		for _, d := range digs {
+			t. Error(d)
+		}
+	}
+	if digs[0] != "mailto:danmolik@gmail.com" {
+		t.Error("Expected ATTENDEE 0 to be: ", "mailto:danmolik@gmail.com", "Got: ", digs[0])
+		for _, d := range digs {
+			t. Error(d)
+		}
+	}
+	if digs[1] != "mailto:dan@d3fy.net" {
+		t.Error("Expected ATTENDEE 1 to be: ", "mailto:dan@d3fy.net", "Got: ", digs[1])
+	}
+}
+
 func TestCalendarEventParseMultiDig(t *testing.T) {
-	vevent := `
+	vcal := `
 BEGIN:VEVENT
 UID:123
 CREATED:20100101T120001Z
@@ -212,7 +264,7 @@ LOCATION:Berlin\nGermany
 URL:https://www.example.com
 END:VEVENT`
 
-	output, err := ParseCalendar(vevent)
+	output, err := ParseCalendar(vcal)
 	if err != nil {
 		panic(err)
 	}
@@ -220,6 +272,10 @@ END:VEVENT`
 	if  dig == "" || ! b {
 		t.Error("Expected dig ATTENDEE to be not empty")
 	}
+	if dig != "mailto:danmolik@gmail.com" {
+		t.Error("Expected ATTENDEE to be: ", "mailto:danmolik@gmail.com", "Got: ", dig)
+	}
+
 	digs, b := output.DigProperties("ATTENDEE")
 	if len(digs) == 0 || ! b {
 		t.Error("Expected digs ATTENDEE to be not empty")
@@ -234,3 +290,4 @@ END:VEVENT`
 		t.Error("Expected ATTENDEE to be: ", "mailto:dan@d3fy.net", "Got: ", digs[1])
 	}
 }
+
