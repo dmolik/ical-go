@@ -39,6 +39,9 @@ func (this *Node) PropString(name string, defaultValue string) string {
 			return child.Value
 		}
 	}
+	if this.Name == name {
+		return this.Value
+	}
 	return defaultValue
 }
 
@@ -114,6 +117,10 @@ func (this *Node) DigProperty(propPath ...string) (string, bool) {
 	return this.dig("prop", propPath...)
 }
 
+func (this *Node) DigProperties(propPath ...string) ([]string, bool) {
+	return this.digs("prop", propPath...)
+}
+
 func (this *Node) Parameter(name string, defaultValue string) string {
 	if len(this.Parameters) <= 0 {
 		return defaultValue
@@ -127,6 +134,10 @@ func (this *Node) Parameter(name string, defaultValue string) string {
 
 func (this *Node) DigParameter(paramPath ...string) (string, bool) {
 	return this.dig("param", paramPath...)
+}
+
+func (this *Node) DigParameters(paramPath ...string) ([]string, bool) {
+	return this.digs("param", paramPath...)
 }
 
 // Digs a value based on a given value path.
@@ -162,6 +173,38 @@ func (this *Node) dig(valueType string, valuePath ...string) (string, bool) {
 	}
 
 	return value, true
+}
+
+func (this *Node) digs(valueType string, valuePath ...string) ([]string, bool) {
+	current := this
+	lastIndex := len(valuePath) - 1
+	nodes := current.ChildrenByName(valuePath[0])
+	for _, v := range valuePath[:lastIndex] {
+		current = current.ChildByName(v)
+		nodes   = current.ChildrenByName(v)
+
+		if current == nil {
+			return []string{""}, false
+		}
+	}
+
+	target := valuePath[lastIndex]
+	var values []string
+	if valueType == "param" {
+		for _, n := range nodes {
+			values = append(values, n.Parameter(target, ""))
+		}
+	} else if valueType == "prop" {
+		for _, n := range nodes {
+			values = append(values, n.PropString(target, ""))
+		}
+	}
+
+	if len(values) == 0 {
+		return []string{""}, false
+	}
+
+	return values, true
 }
 
 func (this *Node) String() string {

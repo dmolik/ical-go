@@ -180,14 +180,57 @@ END:VEVENT`
 	if node.Value != "Lorem Ipsum Loquitur" {
 		t.Error("Expected DESCRIPTION to be: ", "Lorem Ipsum Loquitur", "Got: ", node.Value)
 	}
+
 	nodes := output.ChildrenByName("ATTENDEE")
 	if nodes == nil {
-		t.Error("Expected DESCRIPTION to be not nil")
+		t.Error("Expected ATTENDEE to be not nil")
 	}
 	if nodes[0].Value != "mailto:danmolik@gmail.com" {
-		t.Error("Expected DESCRIPTION to be: ", "mailto:danmolik@gmail.com", "Got: ", nodes[0].Value)
+		t.Error("Expected ATTENDEE to be: ", "mailto:danmolik@gmail.com", "Got: ", nodes[0].Value)
 	}
 	if nodes[1].Value != "mailto:dan@d3fy.net" {
-		t.Error("Expected DESCRIPTION to be: ", "mailto:dan@d3fy.net", "Got: ", nodes[1].Value)
+		t.Error("Expected ATTENDEE to be: ", "mailto:dan@d3fy.net", "Got: ", nodes[1].Value)
+	}
+}
+
+func TestCalendarEventParseMultiDig(t *testing.T) {
+	vevent := `
+BEGIN:VEVENT
+UID:123
+CREATED:20100101T120001Z
+LAST-MODIFIED:20100101T120002Z
+DTSTART:20100101T120003Z
+DTEND:20100101T120004Z
+SUMMARY:Foo Bar
+DESCRIPTION:Lorem Ipsum 
+ Loquitur
+ATTENDEE;RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:danmo
+ lik@gmail.com
+ATTENDEE;RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:dan@d
+ 3fy.net
+LOCATION:Berlin\nGermany
+URL:https://www.example.com
+END:VEVENT`
+
+	output, err := ParseCalendar(vevent)
+	if err != nil {
+		panic(err)
+	}
+	dig, b := output.DigProperty("ATTENDEE")
+	if  dig == "" || ! b {
+		t.Error("Expected dig ATTENDEE to be not empty")
+	}
+	digs, b := output.DigProperties("ATTENDEE")
+	if len(digs) == 0 || ! b {
+		t.Error("Expected digs ATTENDEE to be not empty")
+	}
+	if digs[0] != "mailto:danmolik@gmail.com" {
+		t.Error("Expected ATTENDEE len ", len(digs), " to be: ", "mailto:danmolik@gmail.com", "Got: ", digs[0])
+		for _, d := range digs {
+			t.Error("Expected ATTENDEE to be: ", "mailto:danmolik@gmail.com", "Got: ", d)
+		}
+	}
+	if digs[1] != "mailto:dan@d3fy.net" {
+		t.Error("Expected ATTENDEE to be: ", "mailto:dan@d3fy.net", "Got: ", digs[1])
 	}
 }
